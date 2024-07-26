@@ -6,6 +6,7 @@ import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.SparkSession;
 
 import java.util.List;
+import java.util.Scanner;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -34,6 +35,10 @@ public class SparkFirstProgram {
             Integer sum = myRdd.reduce(Integer::sum);
 
             System.out.printf("Max~>%d:, Min~>%d, Sum~>%d", max, min, sum);
+
+            try( Scanner scanner = new Scanner(System.in)) {
+                scanner.nextLine();
+            }
         }
     }
 }

@@ -1,6 +1,7 @@
 package org.example.chapter05_rddexternaldatasets;
 
 import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.junit.jupiter.api.DisplayName;
@@ -48,6 +49,29 @@ public class RDDExternalDatasetsTest {
             System.out.println("Printing first 10 lines->");
             myRdd.take(10).forEach(System.out::println);
             System.out.println("-------------\n");
+        }
+    }
+
+    @Test
+    @DisplayName("Test Loading Whole Directory Files Into Spark RDD")
+    void testLoadingWholeDirectoryFilesIntoSparkRDD() {
+
+        try (final var sparkContext = new JavaSparkContext(sparkConf)){
+            String testDirPath = Path.of("src","test","resources").toString();
+            JavaPairRDD<String,String> myRdd = sparkContext.wholeTextFiles(testDirPath);
+
+            System.out.printf("Total number of files in directory [%s]: %d%n", testDirPath, myRdd.count());
+
+            myRdd.collect().forEach(tuple -> {
+                System.out.printf("File name: %s%n", tuple._1);
+                System.out.println("------------------------");
+                if (tuple._1.endsWith("properties")){
+                    System.out.printf("Content of [%s]: %n", tuple._1);
+                    System.out.println(tuple._2);
+                }
+
+            });
+
         }
     }
 

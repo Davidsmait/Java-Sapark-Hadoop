@@ -12,6 +12,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.stream.Stream;
 
 public class RDDExternalDatasetsTest {
@@ -74,6 +75,40 @@ public class RDDExternalDatasetsTest {
 
         }
     }
+
+    @Test
+    @DisplayName("Test Loading csv File Into Spark RDD")
+    void testLoadingCSVFileIntoSparkRDD() {
+
+        try (final var sparkContext = new JavaSparkContext(sparkConf)){
+            String testCSVFilePath = Path.of("src","test","resources", "dma.csv").toString();
+            JavaRDD<String> myRdd = sparkContext.textFile(testCSVFilePath);
+
+            System.out.printf("Total number in csv file [%s]: %d%n", testCSVFilePath, myRdd.count());
+
+            System.out.println("CSV headers->");
+            System.out.println(myRdd.first());
+//            myRdd.take(1).forEach(System.out::println);
+            System.out.println("-------------\n");
+
+            System.out.println("Printing first 10 lines ->");
+            myRdd.take(10).forEach(System.out::println);
+            System.out.println("-------------\n");
+
+
+            JavaRDD<String[]> csvFields = myRdd.map(line -> line.split(","));
+
+            csvFields.take(5)
+                    .forEach(fields -> System.out.println(String.join("|", fields)));
+
+//            System.out.println("-------------\n");
+//            csvFields.take(10)
+//                    .forEach(arr -> System.out.println(Arrays.toString(arr)));
+
+        }
+    }
+
+
 
     private static Stream<Arguments>getFilePaths(){
         return Stream.of(

@@ -11,9 +11,12 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.nio.file.AccessDeniedException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class RDDExternalDatasetsTest {
 
@@ -77,34 +80,21 @@ public class RDDExternalDatasetsTest {
     }
 
     @Test
-    @DisplayName("Test Loading csv File Into Spark RDD")
-    void testLoadingCSVFileIntoSparkRDD() {
+    @DisplayName("Test Loading Amazon S3 File Into Spark RDD")
+    void testLoadingAmazonS3FileIntoSparkRDD() {
 
         try (final var sparkContext = new JavaSparkContext(sparkConf)){
-            String testCSVFilePath = Path.of("src","test","resources", "dma.csv").toString();
-            JavaRDD<String> myRdd = sparkContext.textFile(testCSVFilePath);
 
-            System.out.printf("Total number in csv file [%s]: %d%n", testCSVFilePath, myRdd.count());
+            // Replace key with AWS account key (can find this on IAM)
+            sparkContext.hadoopConfiguration().set("fs.s3a.access.key", "AWS access-key value");
 
-            System.out.println("CSV headers->");
-            System.out.println(myRdd.first());
-//            myRdd.take(1).forEach(System.out::println);
-            System.out.println("-------------\n");
+            // Replace key with AWS secret key (can find this on IAM)
+            sparkContext.hadoopConfiguration().set("fs.s3a.access.key", "AWS secret-key value");
 
-            System.out.println("Printing first 10 lines ->");
-            myRdd.take(10).forEach(System.out::println);
-            System.out.println("-------------\n");
+            //Read a single text file
+            final var myRdd = sparkContext.textFile("s3a://backstreetbrogrammer/spark/1TrqillionWords.txt/gz");
 
-
-            JavaRDD<String[]> csvFields = myRdd.map(line -> line.split(","));
-
-            csvFields.take(5)
-                    .forEach(fields -> System.out.println(String.join("|", fields)));
-
-//            System.out.println("-------------\n");
-//            csvFields.take(10)
-//                    .forEach(arr -> System.out.println(Arrays.toString(arr)));
-
+            assertThrows(AccessDeniedException.class, myRdd::count);
         }
     }
 
